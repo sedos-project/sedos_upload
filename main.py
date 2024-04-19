@@ -57,4 +57,7 @@ def create_tables_from_folder(folder: pathlib.Path | str):
 
 if __name__ == "__main__":
     load_credentials()
-    create_tables_from_folder("data")
+    upload_folder = input("Input folder (default: data/): ")
+    if upload_folder == "":
+        upload_folder = "data"
+    create_tables_from_folder(upload_folder)
