@@ -13,17 +13,26 @@ logging.basicConfig(
 
 OEP_USER = os.environ.get("OEP_USER")
 OEP_TOKEN = os.environ.get("OEP_TOKEN")
+DATABUS_USER = os.environ.get("DATABUS_USER")
+DATABUS_API_KEY = os.environ.get("DATABUS_API_KEY")
+DATABUS_GROUP = os.environ.get("DATABUS_GROUP")
 
 OEP_API = "https://openenergyplatform.org/api/v0"
 OEDATAMODEL_API_URL = "https://modex.rl-institut.de"
 
 
 def load_credentials():
-    global OEP_USER, OEP_TOKEN
+    global OEP_USER, OEP_TOKEN, DATABUS_USER, DATABUS_API_KEY, DATABUS_GROUP
     if OEP_USER is None:
         OEP_USER = input("OEP Username: ")
     if OEP_TOKEN is None:
         OEP_TOKEN = input("OEP Token: ")
+    if DATABUS_USER is None:
+        DATABUS_USER = input("Database Username: ")
+    if DATABUS_API_KEY is None:
+        DATABUS_API_KEY = input("Database API Key: ")
+    if DATABUS_GROUP is None:
+        DATABUS_GROUP = input("Database Group: ")
 
 
 def table_exists(table_name: str) -> bool:
@@ -72,7 +81,13 @@ def version_exists(table_name: str, version: str) -> bool:
         }
     }
     response = requests.post(f"{OEP_API}/advanced/search", json=data)
-    rows = response.json()["data"]
+    data = response.json()
+
+    # If table is empty, no data is delivered, thus check if rowcount is zero
+    if data["content"]["rowcount"] == 0:
+        return False
+
+    rows = data["data"]
     versions = {row[0] for row in rows}
     return version in versions
 
@@ -82,12 +97,19 @@ def upload_data(table_name: str, data_file: pathlib.Path):
     response = requests.post(
         f"{OEDATAMODEL_API_URL}/upload/",
         files=files,
-        data={"token": OEP_TOKEN, "schema": "model_draft", "table": table_name, "adapt_pks": "on"},
+        data={
+            "token": OEP_TOKEN,
+            "schema": "model_draft",
+            "table": table_name,
+            "adapt_pks": "on",
+        },
     )
     if response.status_code == 200:
         logging.info(f"Dataset uploaded successfully for table {table_name}.")
     else:
-        logging.error(f"Dataset upload failed for table {table_name}. Reason: {response.text}")
+        logging.error(
+            f"Dataset upload failed for table {table_name}. Reason: {response.text}"
+        )
 
 
 def upload_files_form_folder(folder: pathlib.Path):
@@ -108,6 +130,27 @@ def upload_files_form_folder(folder: pathlib.Path):
             continue
 
         upload_data(table_name, data_filename)
+        register_data_on_databus(table_name, version)
+
+
+def register_data_on_databus(table_name: str, version: str):
+    response = requests.post(
+        f"{OEDATAMODEL_API_URL}/databus/",
+        data={
+            "account": DATABUS_USER,
+            "api_key": DATABUS_API_KEY,
+            "group": DATABUS_GROUP,
+            "schema": "model_draft",
+            "table": table_name,
+            "version": version,
+        }
+    )
+    if response.status_code == 200:
+        logging.info(f"Version {version} for table {table_name} successfully registered on databus.")
+    else:
+        logging.error(
+            f"Registration of version {version} for table {table_name} on databus failed. Reason: {response.text}"
+        )
 
 
 if __name__ == "__main__":
