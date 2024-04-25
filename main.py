@@ -5,11 +5,25 @@ import requests
 import logging
 import pandas as pd
 
-logging.basicConfig(
-    filename="upload.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
+# Set up basic configuration for the logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Define a common formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+# Create and configure file handler
+file_handler = logging.FileHandler('upload.log')
+file_handler.setFormatter(formatter)
+
+# Create and configure console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
 
 OEP_USER = os.environ.get("OEP_USER")
 OEP_TOKEN = os.environ.get("OEP_TOKEN")
@@ -50,9 +64,9 @@ def create_table(table_name: str, metadata_filename: pathlib.Path):
         data={"user": OEP_USER, "token": OEP_TOKEN},
     )
     if response.status_code == 200:
-        logging.info(f"Table {table_name} created successfully.")
+        logger.info(f"Table {table_name} created successfully.")
     else:
-        logging.error(
+        logger.error(
             f"Table {table_name} could not be created. Reason: {response.text}"
         )
 
@@ -67,7 +81,7 @@ def create_tables_from_folder(folder: pathlib.Path):
 
         table_name = metadata["resources"][0]["name"].split(".")[1]
         if table_exists(table_name):
-            logging.info(f"Table {table_name} already exists. Skipping.")
+            logger.info(f"Table {table_name} already exists. Skipping.")
             continue
 
         create_table(table_name, metadata_filename)
@@ -105,9 +119,9 @@ def upload_data(table_name: str, data_file: pathlib.Path):
         },
     )
     if response.status_code == 200:
-        logging.info(f"Dataset uploaded successfully for table {table_name}.")
+        logger.info(f"Dataset uploaded successfully for table {table_name}.")
     else:
-        logging.error(
+        logger.error(
             f"Dataset upload failed for table {table_name}. Reason: {response.text}"
         )
 
@@ -124,7 +138,7 @@ def upload_files_form_folder(folder: pathlib.Path):
         version = data.iloc[0]["version"]
 
         if version_exists(table_name, version):
-            logging.info(
+            logger.info(
                 f"Version {version} already exists in table {table_name}. Skipping."
             )
             continue
@@ -146,17 +160,17 @@ def register_data_on_databus(table_name: str, version: str):
         },
     )
     if response.status_code == 200:
-        logging.info(
+        logger.info(
             f"Version {version} for table {table_name} successfully registered on databus."
         )
     else:
-        logging.error(
+        logger.error(
             f"Registration of version {version} for table {table_name} on databus failed. Reason: {response.text}"
         )
 
 
 def check_nomenclature_table(check_table: str, upload_folder: str):
-    logging.info(
+    logger.info(
         f"Check if column naming matches nomenclature for table(s): {check_table}"
     )
     nomenclature_static = load_static_nomenclature()
@@ -171,13 +185,13 @@ def check_nomenclature_table(check_table: str, upload_folder: str):
 
     # if specific table name is not in csvs and not all - notify
     if check_table not in csvs and check_table != "all":
-        logging.info(
+        logger.info(
             f"Table: {check_table} is not a csv file in your upload folder path: {upload_folder}\n"
         )
 
-    logging.info(
-        f"The following column headers are not conform with the nomenclature.\n"
-        f"Please, check the dynamic parameter conventions or if your columns are simply wrong:\n"
+    logger.info(
+        f"The following column headers are not conform with the nomenclature."
+        f"Please, check the dynamic parameter conventions or if your columns are simply wrong:"
     )
 
     for table in csvs:
@@ -189,7 +203,7 @@ def check_nomenclature_table(check_table: str, upload_folder: str):
             ).columns
         )
         difference_set = tables_headers - nomenclature_static
-        logging.info(f"Table: {table}\nHeader: {difference_set}\n")
+        logger.info(f"Table: {table} -> Header: {difference_set}")
 
 
 
