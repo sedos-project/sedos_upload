@@ -171,11 +171,11 @@ def check_nomenclature_table(check_table: str, upload_folder: str):
 
     # if specific table name is not in csvs and not all - notify
     if check_table not in csvs and check_table != "all":
-        print(
+        logging.info(
             f"Table: {check_table} is not a csv file in your upload folder path: {upload_folder}\n"
         )
 
-    print(
+    logging.info(
         f"The following column headers are not conform with the nomenclature.\n"
         f"Please, check the dynamic parameter conventions or if your columns are simply wrong:\n"
     )
@@ -189,10 +189,8 @@ def check_nomenclature_table(check_table: str, upload_folder: str):
             ).columns
         )
         difference_set = tables_headers - nomenclature_static
-        print(f"Table: {table}\nHeader: {difference_set}\n")
-        logging.error(
-            f"Table -> {table} <- does not comply with nomenclature in columns: "
-        )
+        logging.info(f"Table: {table}\nHeader: {difference_set}\n")
+
 
 
 def load_static_nomenclature():
@@ -221,11 +219,11 @@ if __name__ == "__main__":
     upload_folder = get_input("Input folder", "data/")
 
     # nomenclature check
+    upload_folder = pathlib.Path(upload_folder)
     nomenclature_path = pathlib.Path(nomenclature_path)
     check_nomenclature_table(check_table, upload_folder)
 
     # upload
     load_credentials()
-    upload_folder = pathlib.Path(upload_folder)
     create_tables_from_folder(upload_folder)
     upload_files_form_folder(upload_folder)
