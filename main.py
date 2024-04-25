@@ -180,14 +180,13 @@ def check_nomenclature_table(check_table: str, upload_folder: str):
     csvs = [csv.rstrip(".csv") for csv in files if csv.endswith(".csv")]
 
     # if specific table name is given only check this table
-    if check_table in csvs and check_table != "all":
+    if check_table != "all":
+        if check_table not in csvs:
+            logger.error(
+                f"Table: {check_table} is not a csv file in your upload folder path: {upload_folder}\n"
+            )
+            return
         csvs = [check_table]
-
-    # if specific table name is not in csvs and not all - notify
-    if check_table not in csvs and check_table != "all":
-        logger.info(
-            f"Table: {check_table} is not a csv file in your upload folder path: {upload_folder}\n"
-        )
 
     logger.info(
         f"The following column headers are not conform with the nomenclature."
