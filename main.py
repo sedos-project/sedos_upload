@@ -189,11 +189,7 @@ def check_nomenclature_table(check_table: str, upload_folder: pathlib.Path):
             return
         csvs = [check_table]
 
-    logger.info(
-        f"The following column headers are not conform with the nomenclature."
-        f"Please, check the dynamic parameter conventions or if your columns are simply wrong:"
-    )
-
+    logging_explained = False
     for table in csvs:
         tables_headers = set(
             pd.read_csv(
@@ -203,8 +199,14 @@ def check_nomenclature_table(check_table: str, upload_folder: pathlib.Path):
             ).columns
         )
         difference_set = tables_headers - nomenclature_static
-        logger.info(f"Table: {table} -> Header: {difference_set}")
-
+        if len(difference_set) > 0:
+            if not logging_explained:
+                logger.error(
+                    f"The following column headers are not conform with the nomenclature."
+                    f"Please, check the dynamic parameter conventions or if your columns are simply wrong:"
+                )
+                logging_explained = True
+            logger.error(f"Table: {table} -> Headers: {difference_set}")
 
 
 def load_static_nomenclature():
