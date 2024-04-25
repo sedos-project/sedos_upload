@@ -143,21 +143,89 @@ def register_data_on_databus(table_name: str, version: str):
             "schema": "model_draft",
             "table": table_name,
             "version": version,
-        }
+        },
     )
     if response.status_code == 200:
-        logging.info(f"Version {version} for table {table_name} successfully registered on databus.")
+        logging.info(
+            f"Version {version} for table {table_name} successfully registered on databus."
+        )
     else:
         logging.error(
             f"Registration of version {version} for table {table_name} on databus failed. Reason: {response.text}"
         )
 
 
+def check_nomenclature_table(check_table: str, upload_folder: str):
+    logging.info(
+        f"Check if column naming matches nomenclature for table(s): {check_table}"
+    )
+    nomenclature_static = load_static_nomenclature()
+
+    # find all csv files in upload_folder
+    files = os.listdir(upload_folder)
+    csvs = [csv.rstrip(".csv") for csv in files if csv.endswith(".csv")]
+
+    # if specific table name is given only check this table
+    if check_table in csvs and check_table != "all":
+        csvs = [check_table]
+
+    # if specific table name is not in csvs and not all - notify
+    if check_table not in csvs and check_table != "all":
+        print(
+            f"Table: {check_table} is not a csv file in your upload folder path: {upload_folder}\n"
+        )
+
+    print(
+        f"The following column headers are not conform with the nomenclature.\n"
+        f"Please, check the dynamic parameter conventions or if your columns are simply wrong:\n"
+    )
+
+    for table in csvs:
+        tables_headers = set(
+            pd.read_csv(
+                filepath_or_buffer=os.path.join(upload_folder, table + ".csv"),
+                sep=";",
+                nrows=0,
+            ).columns
+        )
+        difference_set = tables_headers - nomenclature_static
+        print(f"Table: {table}\nHeader: {difference_set}\n")
+        logging.error(
+            f"Table -> {table} <- does not comply with nomenclature in columns: "
+        )
+
+
+def load_static_nomenclature():
+    nomenclature = pd.read_excel(
+        os.path.join(nomenclature_path, "SEDOS_Modellstruktur.xlsx"),
+        sheet_name="Parameter_Set",
+        usecols=["SEDOS_name_long", "static_parameter"],
+    )
+    nomenclature_static = set(
+        nomenclature.loc[nomenclature["static_parameter"] == 1, "SEDOS_name_long"]
+    )
+
+    return nomenclature_static
+
+
+def get_input(prompt, default):
+    """Prompt for input and use a default value if none is provided."""
+    user_input = input(f"{prompt} (default: '{default}'): ")
+    return user_input.strip() or default
+
+
 if __name__ == "__main__":
+    # user inputs
+    check_table = get_input("Enter specific table name to check or hit enter for 'all'", "all")
+    nomenclature_path = get_input("Path to 'SEDOS_Modellstruktur.xlsx'", "data/")
+    upload_folder = get_input("Input folder", "data/")
+
+    # nomenclature check
+    nomenclature_path = pathlib.Path(nomenclature_path)
+    check_nomenclature_table(check_table, upload_folder)
+
+    # upload
     load_credentials()
-    upload_folder = input("Input folder (default: data/): ")
-    if upload_folder == "":
-        upload_folder = "data"
     upload_folder = pathlib.Path(upload_folder)
     create_tables_from_folder(upload_folder)
     upload_files_form_folder(upload_folder)
