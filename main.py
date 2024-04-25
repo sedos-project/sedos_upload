@@ -1,19 +1,20 @@
 import json
+import logging
 import os
 import pathlib
-import requests
-import logging
+
 import pandas as pd
+import requests
 
 # Set up basic configuration for the logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Define a common formatter
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
 # Create and configure file handler
-file_handler = logging.FileHandler('upload.log')
+file_handler = logging.FileHandler("upload.log")
 file_handler.setFormatter(formatter)
 
 # Create and configure console handler
@@ -169,7 +170,7 @@ def register_data_on_databus(table_name: str, version: str):
         )
 
 
-def check_nomenclature_table(check_table: str, upload_folder: str):
+def check_nomenclature_table(check_table: str, upload_folder: pathlib.Path):
     logger.info(
         f"Check if column naming matches nomenclature for table(s): {check_table}"
     )
@@ -227,7 +228,9 @@ def get_input(prompt, default):
 
 if __name__ == "__main__":
     # user inputs
-    check_table = get_input("Enter specific table name to check or hit enter for 'all'", "all")
+    check_table = get_input(
+        "Enter specific table name to check or hit enter for 'all'", "all"
+    )
     nomenclature_path = get_input("Path to 'SEDOS_Modellstruktur.xlsx'", "data/")
     upload_folder = get_input("Input folder", "data/")
 
