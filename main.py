@@ -36,12 +36,15 @@ OEP_API = "https://openenergyplatform.org/api/v0"
 OEDATAMODEL_API_URL = "https://modex.rl-institut.de"
 
 
-def load_credentials():
-    global OEP_USER, OEP_TOKEN, DATABUS_USER, DATABUS_API_KEY, DATABUS_GROUP
+def load_oep_credentials():
+    global OEP_USER, OEP_TOKEN
     if OEP_USER is None:
         OEP_USER = input("OEP Username: ")
     if OEP_TOKEN is None:
         OEP_TOKEN = input("OEP Token: ")
+
+def load_databus_credentials():
+    global DATABUS_USER, DATABUS_API_KEY, DATABUS_GROUP
     if DATABUS_USER is None:
         DATABUS_USER = input("Databus Username: ")
     if DATABUS_API_KEY is None:
@@ -177,8 +180,7 @@ def check_nomenclature_table(check_table: str, upload_folder: pathlib.Path):
     nomenclature_static = load_static_nomenclature()
 
     # find all csv files in upload_folder
-    files = os.listdir(upload_folder)
-    csvs = [csv.rstrip(".csv") for csv in files if csv.endswith(".csv")]
+    csvs = return_csv_table_names(upload_folder)
 
     # if specific table name is given only check this table
     if check_table != "all":
@@ -221,6 +223,26 @@ def load_static_nomenclature():
 
     return nomenclature_static
 
+def delete_tables(delete_tables, delete_table_folder: pathlib.Path):
+    if delete_tables != "no":
+        tables_to_delete = return_csv_table_names(delete_table_folder)
+        TOKEN_DICT = {"Authorization": "Token %s" % OEP_TOKEN}
+
+        for table in tables_to_delete:
+            response = requests.delete(
+                f"{OEP_API}/schema/model_draft/tables/{table}/",
+                headers=TOKEN_DICT
+            )
+
+            # raise Exception if request fails
+            if not response.ok:
+                raise logger.error(response.text)
+
+
+def return_csv_table_names(path: pathlib.Path) -> list:
+    files = os.listdir(path)
+    return [csv.rstrip(".csv") for csv in files if csv.endswith(".csv")]
+
 
 def get_input(prompt, default):
     """Prompt for input and use a default value if none is provided."""
@@ -229,12 +251,21 @@ def get_input(prompt, default):
 
 
 if __name__ == "__main__":
-    # user inputs
+    # delete tables
+    delete = get_input("Delete table(s) on OEP", "no")
+
+    if delete != "no":
+        delete_table_folder = get_input("Path to folder for csv tables to be deleted on OEP", "delete/")
+        delete_table_folder = pathlib.Path(delete_table_folder)
+        load_oep_credentials()
+        delete_tables(delete_tables, delete_table_folder)
+
+    # user input
+    upload_folder = get_input("Table folder", "data/")
     check_table = get_input(
         "Enter specific table name to check or hit enter for 'all'", "all"
     )
     nomenclature_path = get_input("Path to 'SEDOS_Modellstruktur.xlsx'", "data/")
-    upload_folder = get_input("Input folder", "data/")
 
     # nomenclature check
     upload_folder = pathlib.Path(upload_folder)
@@ -242,6 +273,8 @@ if __name__ == "__main__":
     check_nomenclature_table(check_table, upload_folder)
 
     # upload
-    load_credentials()
+    if delete == "no":
+        load_oep_credentials()
+    load_databus_credentials()
     create_tables_from_folder(upload_folder)
     upload_files_form_folder(upload_folder)
