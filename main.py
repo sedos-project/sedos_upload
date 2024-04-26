@@ -223,20 +223,19 @@ def load_static_nomenclature():
 
     return nomenclature_static
 
-def delete_tables(delete_tables, delete_table_folder: pathlib.Path):
-    if delete_tables != "no":
-        tables_to_delete = return_csv_table_names(delete_table_folder)
-        TOKEN_DICT = {"Authorization": "Token %s" % OEP_TOKEN}
+def delete_tables(delete_table_folder: pathlib.Path):
+    tables_to_delete = return_csv_table_names(delete_table_folder)
+    TOKEN_DICT = {"Authorization": "Token %s" % OEP_TOKEN}
 
-        for table in tables_to_delete:
-            response = requests.delete(
-                f"{OEP_API}/schema/model_draft/tables/{table}/",
-                headers=TOKEN_DICT
-            )
+    for table in tables_to_delete:
+        response = requests.delete(
+            f"{OEP_API}/schema/model_draft/tables/{table}/",
+            headers=TOKEN_DICT
+        )
 
-            # raise Exception if request fails
-            if not response.ok:
-                raise logger.error(response.text)
+        # raise Exception if request fails
+        if not response.ok:
+            raise logger.error(response.text)
 
 
 def return_csv_table_names(path: pathlib.Path) -> list:
@@ -258,7 +257,7 @@ if __name__ == "__main__":
         delete_table_folder = get_input("Path to folder for csv tables to be deleted on OEP", "delete/")
         delete_table_folder = pathlib.Path(delete_table_folder)
         load_oep_credentials()
-        delete_tables(delete_tables, delete_table_folder)
+        delete_tables(delete_table_folder)
 
     # user input
     upload_folder = get_input("Table folder", "data/")
