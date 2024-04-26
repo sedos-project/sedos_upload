@@ -43,11 +43,11 @@ def load_credentials():
     if OEP_TOKEN is None:
         OEP_TOKEN = input("OEP Token: ")
     if DATABUS_USER is None:
-        DATABUS_USER = input("Database Username: ")
+        DATABUS_USER = input("Databus Username: ")
     if DATABUS_API_KEY is None:
-        DATABUS_API_KEY = input("Database API Key: ")
+        DATABUS_API_KEY = input("Databus API Key: ")
     if DATABUS_GROUP is None:
-        DATABUS_GROUP = input("Database Group: ")
+        DATABUS_GROUP = input("Databus Group: ")
 
 
 def table_exists(table_name: str) -> bool:
