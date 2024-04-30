@@ -68,7 +68,7 @@ def create_table(table_name: str, metadata_filename: pathlib.Path):
         data={"user": OEP_USER, "token": OEP_TOKEN},
     )
     if response.status_code == 200:
-        logger.info(f"Table {table_name} created successfully.")
+        logger.info(f"Table {table_name} successfully created.")
     else:
         logger.error(
             f"Table {table_name} could not be created. Reason: {response.text}"
@@ -234,7 +234,11 @@ def delete_tables(delete_table_folder: pathlib.Path):
         )
 
         # raise Exception if request fails
-        if not response.ok:
+        if response.ok:
+            logger.info(
+                f"Table {table} successfully deleted."
+            )
+        else:
             raise logger.error(response.text)
 
 
