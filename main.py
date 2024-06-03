@@ -18,6 +18,7 @@ file_handler = logging.FileHandler("upload.log")
 file_handler.setFormatter(formatter)
 
 # Create and configure console handler
+
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 
@@ -244,7 +245,7 @@ def delete_tables(delete_table_folder: pathlib.Path):
 
 def return_csv_table_names(path: pathlib.Path) -> list:
     files = os.listdir(path)
-    return [csv.rstrip(".csv") for csv in files if csv.endswith(".csv")]
+    return [csv.removesuffix(".csv") for csv in files if csv.endswith(".csv")]
 
 
 def get_input(prompt, default):
