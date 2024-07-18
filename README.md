@@ -12,14 +12,21 @@ Steps to set up script:
 - create python environment
 - activate environment
 - install packages: `pip install -r requirements.txt`
-- run script: `python main.py`
 
 ## Usage
 
-First you have to enter all required credential (see how to set credentials permanently in next section).
+There are two scripts in the repository:
+
+1. `main.py`
+With this script you can create tables from metadata and fill tables with correspondiong data from CSVs.
+To do so, you have to run `python main.py` and enter all required credential (see how to set credentials permanently in next section).
 Afterwards, you have to point to a directory holding your metadata and/or data files.
 Metadata must be given as JSON, data file has to be named after OPE table and given as CSV.
 From there, the script should do the rest...
+2. `results.py`
+This script is for uploading result data to OEP and register scenario data on databus 
+(similar to `main.py`, but with fixed table to upload data to).
+Run `python results.py` to update results data to table (`sedos_results.csv` must be placed in upload folder)
 
 ## Credentials
 
