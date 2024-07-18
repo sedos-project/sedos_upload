@@ -44,6 +44,7 @@ def load_oep_credentials():
     if OEP_TOKEN is None:
         OEP_TOKEN = input("OEP Token: ")
 
+
 def load_databus_credentials():
     global DATABUS_USER, DATABUS_API_KEY, DATABUS_GROUP
     if DATABUS_USER is None:
@@ -92,10 +93,10 @@ def create_tables_from_folder(folder: pathlib.Path):
         create_table(table_name, metadata_filename)
 
 
-def version_exists(table_name: str, version: str) -> bool:
+def version_exists(table_name: str, version: str, version_column: str) -> bool:
     data = {
         "query": {
-            "fields": ["version"],
+            "fields": [version_column],
             "from": {"type": "table", "table": table_name, "schema": "model_draft"},
         }
     }
@@ -131,7 +132,7 @@ def upload_data(table_name: str, data_file: pathlib.Path):
         )
 
 
-def upload_files_form_folder(folder: pathlib.Path):
+def upload_files_from_folder(folder: pathlib.Path, version_column: str = "version"):
     for data_filename in folder.iterdir():
         if not data_filename.suffix == ".csv":
             continue
@@ -140,19 +141,19 @@ def upload_files_form_folder(folder: pathlib.Path):
             data = pd.read_csv(f, delimiter=";")
 
         table_name = data_filename.name.split(".")[0]
-        version = data.iloc[0]["version"]
+        version = data.iloc[0][version_column]
 
-        if version_exists(table_name, version):
+        if version_exists(table_name, version, version_column):
             logger.info(
-                f"Version {version} already exists in table {table_name}. Skipping."
+                f"Version {version_column}={version} already exists in table {table_name}. Skipping."
             )
             continue
 
         upload_data(table_name, data_filename)
-        register_data_on_databus(table_name, version)
+        register_data_on_databus(table_name, version, version_column)
 
 
-def register_data_on_databus(table_name: str, version: str):
+def register_data_on_databus(table_name: str, version: str, version_column: str = "version"):
     response = requests.post(
         f"{OEDATAMODEL_API_URL}/databus/",
         data={
@@ -162,6 +163,7 @@ def register_data_on_databus(table_name: str, version: str):
             "schema": "model_draft",
             "table": table_name,
             "version": version,
+            "version_column": version_column,
         },
     )
     if response.status_code == 200:
@@ -224,6 +226,7 @@ def load_static_nomenclature():
 
     return nomenclature_static
 
+
 def delete_tables(delete_table_folder: pathlib.Path):
     tables_to_delete = return_csv_table_names(delete_table_folder)
     TOKEN_DICT = {"Authorization": "Token %s" % OEP_TOKEN}
@@ -281,4 +284,4 @@ if __name__ == "__main__":
         load_oep_credentials()
     load_databus_credentials()
     create_tables_from_folder(upload_folder)
-    upload_files_form_folder(upload_folder)
+    upload_files_from_folder(upload_folder)
