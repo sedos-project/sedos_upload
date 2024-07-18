@@ -16,10 +16,22 @@ Steps to set up script:
 
 ## Usage
 
-First you have to enter all required credential.
+First you have to enter all required credential (see how to set credentials permanently in next section).
 Afterwards, you have to point to a directory holding your metadata and/or data files.
 Metadata must be given as JSON, data file has to be named after OPE table and given as CSV.
 From there, the script should do the rest...
+
+## Credentials
+
+Instead of entering credentials at every run, you can add a `.env` file to the folder containing credentials in the following way:
+```text
+DATABUS_API_KEY=api_key
+DATABUS_GROUP=example_group
+DATABUS_USER=example_user
+OEP_TOKEN=token
+OEP_USER=username containing spaces
+```
+As this file is added to `.gitignore` your secrets are not getting commited!
 
 ## Issues
 

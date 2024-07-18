@@ -5,6 +5,9 @@ import pathlib
 
 import pandas as pd
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set up basic configuration for the logger
 logger = logging.getLogger(__name__)
