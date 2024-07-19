@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import pathlib
+from typing import Optional
 
 import pandas as pd
 import requests
@@ -135,7 +136,8 @@ def upload_data(table_name: str, data_file: pathlib.Path):
         )
 
 
-def upload_files_from_folder(folder: pathlib.Path, version_column: str = "version"):
+def upload_files_from_folder(folder: pathlib.Path, version_column: str = "version", artifact_names=None):
+    artifact_names = artifact_names if artifact_names else {}
     for data_filename in folder.iterdir():
         if not data_filename.suffix == ".csv":
             continue
@@ -153,10 +155,10 @@ def upload_files_from_folder(folder: pathlib.Path, version_column: str = "versio
             continue
 
         upload_data(table_name, data_filename)
-        register_data_on_databus(table_name, version, version_column)
+        register_data_on_databus(table_name, version, artifact_names.get(table_name), version_column)
 
 
-def register_data_on_databus(table_name: str, version: str, version_column: str = "version"):
+def register_data_on_databus(table_name: str, version: str, artifact_name: Optional[str] = None, version_column: str = "version"):
     response = requests.post(
         f"{OEDATAMODEL_API_URL}/databus/",
         data={
@@ -166,6 +168,7 @@ def register_data_on_databus(table_name: str, version: str, version_column: str 
             "schema": "model_draft",
             "table": table_name,
             "version": version,
+            "artifact_name": artifact_name,
             "version_column": version_column,
         },
     )

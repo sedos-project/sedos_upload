@@ -13,7 +13,9 @@ if __name__ == "__main__":
     upload_folder = get_input("Table folder", "data/")
     upload_folder = pathlib.Path(upload_folder)
 
+    scenario = input("Scenario name: ")
+
     # upload
     load_oep_credentials()
     load_databus_credentials()
-    upload_files_from_folder(upload_folder, version_column="scenario")
+    upload_files_from_folder(upload_folder, artifact_names={"sedos_results": scenario}, version_column="scenario")
