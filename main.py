@@ -249,7 +249,7 @@ def delete_tables(delete_table_folder: pathlib.Path):
                 f"Table {table} successfully deleted."
             )
         else:
-            raise logger.error(response.text)
+            logger.error(f"Could not delete table '{table}'. Reason: {response.text}.")
 
 
 def return_csv_table_names(path: pathlib.Path) -> list:
