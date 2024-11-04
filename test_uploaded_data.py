@@ -22,7 +22,12 @@ adapter = Adapter(
     structure=structure,
 )
 
-processes = {
-    process: adapter.get_process(process)
-    for process in list(structure.processes.keys())
-}
+processes = {}
+
+for process_name in structure.processes.keys():
+    try:
+        print(f"Checking process: {process_name}")
+        processes[process_name] = adapter.get_process(process_name)
+        print(f"Process '{process_name}' downloaded successfully.")
+    except Exception as e:
+        print(f"Failed to download process '{process_name}': {e}")
