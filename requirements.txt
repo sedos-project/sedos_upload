@@ -2,3 +2,4 @@ requests
 pandas
 openpyxl
 python-dotenv
+git+https://github.com/sedos-project/data_adapter
