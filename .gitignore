@@ -2,3 +2,4 @@
 .idea/
 /upload.log
 /.env
+structures/*
