@@ -27,6 +27,8 @@ From there, the script should do the rest...
 This script is for uploading result data to OEP and register scenario data on databus 
 (similar to `main.py`, but with fixed table to upload data to).
 Run `python results.py` to update results data to table (`sedos_results.csv` must be placed in upload folder)
+3. `databus.py`
+Currently, this script allows deleting of artifacts on databus including all of its versions. So be careful!
 
 ## Credentials
 
